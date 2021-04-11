@@ -1,0 +1,19 @@
+#!/bin/bash
+set -ueo pipefail
+
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+
+template="$(plugin_read_config "TEMPLATE")"
+selector="$(plugin_read_config "SELECTOR")"
+auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
+
+echo "
+step templates
+
+template=$template
+selector=$selector
+auto_selections=${auto_selections[*]}
+"

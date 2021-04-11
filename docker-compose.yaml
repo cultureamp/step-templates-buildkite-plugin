@@ -1,0 +1,11 @@
+services:
+  lint:
+    image: buildkite/plugin-linter
+    command: ['--id', 'cultureamp/step-templates']
+    volumes:
+      - ".:/plugin:ro"
+
+  tests:
+    image: buildkite/plugin-tester
+    volumes:
+      - ".:/plugin:ro"

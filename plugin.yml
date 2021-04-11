@@ -1,0 +1,13 @@
+name: Step Templates
+description: Allows steps to be injected into the pipeline based on a common template.
+author: https://github.com/jamestelfer
+requirements: []
+configuration:
+  properties:
+    template:
+      type: string
+    auto-selections:
+      type: array
+    selector:
+      type: string
+  additionalProperties: false
