@@ -8,12 +8,29 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 template="$(plugin_read_config "TEMPLATE")"
 selector="$(plugin_read_config "SELECTOR")"
-readarray -t auto_selections <<< "$(plugin_read_list "AUTO_SELECTIONS")"
+auto_selections=()
+raw_selections="$(plugin_read_list "AUTO_SELECTIONS")"
+if [[ -n $raw_selections ]]; then
+    readarray -t auto_selections <<< "$(plugin_read_list "AUTO_SELECTIONS")"
+fi
 
+if [[ -z "$template" ]] ; then
+  echo "+++ ❌ Step templates plugin error"
+  echo "No 'template' argument provided: cannot produce pipeline fragments without the template."
+  exit 1
+fi
+
+if [[ -z "$selector" ]]  && [[ ${#auto_selections[@]} -eq 0 ]] ; then
+  echo "+++ ❌ Step templates plugin error"
+  echo "Neither selector nor auto_selections specified: nothing to do."
+  exit 1
+fi
+
+# reverse order
+
+# build
 echo "
-step templates
 
-template=$template
-selector=$selector
-auto_selections=${auto_selections[*]}
 "
+# selector
+# auto-selections
