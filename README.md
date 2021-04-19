@@ -11,11 +11,12 @@ steps:
   - command: ls
     plugins:
       - cultureamp/step-templates#v1.0.0:
-          template: deploy-steps.yml
+          step-template: deploy-steps.yml
+          step-var-names: ["account", "env", "region"]
           auto-selections:
-            - "production-us;production"
-            - "production-eu;production"
-          selector: deploy-selector.yml
+            - "production-us;production;us-west-1"
+            - "production-eu;production;eu-west-2"
+          selector-template: deploy-selector.yml
 ```
 
 ## Configuration

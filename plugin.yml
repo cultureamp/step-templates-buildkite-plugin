@@ -1,13 +1,15 @@
 name: Step Templates
 description: Allows steps to be injected into the pipeline based on a common template.
 author: https://github.com/jamestelfer
-requirements: ["jq"]
+requirements: []
 configuration:
   properties:
-    template:
+    step-template:
       type: string
+    step-var-names:
+      type: array
     auto-selections:
       type: array
-    selector:
+    selector-template:
       type: string
   additionalProperties: false
