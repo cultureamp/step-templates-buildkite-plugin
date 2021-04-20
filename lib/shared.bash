@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 plugin_prefix="BUILDKITE_PLUGIN_STEP_TEMPLATES_"
 

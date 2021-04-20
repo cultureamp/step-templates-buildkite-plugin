@@ -5,15 +5,13 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # shellcheck source=lib/shared.bash
 . "$DIR/../lib/shared.bash"
+# shellcheck source=lib/steps.bash
+. "$DIR/../lib/steps.bash"
 
 step_template="$(plugin_read_config "TEMPLATE")"
 selector_template="$(plugin_read_config "SELECTOR")"
 
-step_var_names=()
-raw_step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
-if [[ -n $raw_step_var_names ]]; then
-  readarray -t step_var_names <<< "$(plugin_read_list "STEP_VAR_NAMES")"
-fi
+step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
 
@@ -44,40 +42,5 @@ fi
 #   selected_environments=$(buildkite-agent meta-data get "deploy-environment" --default "")
 # fi
 
-# The farm deploy steps will appear first
-if [[ -n "$auto_selections" ]]; then
-  while IFS=$'\n' read -r selection;
-  do
-    if [[ -z $selection ]]; then
-      continue
-    fi
 
-    readarray -d ';' -t step_vars <<< "$selection"
-
-    # for each selected environment, write the template with the required variable names
-    (
-      # the first item is always called environment
-      if [[ ${#step_vars[@]} -gt 0 ]]; then
-        export STEP_ENVIRONMENT="${step_vars[0]}"
-      fi
-
-      # output > 1 as named in step-var-names, making up a default if needed
-      for ((i=1; i < ${#step_vars[@]}; ++i)); do
-        nm_idx=$i-1
-        var_name="step_var_${i}"
-        if [[ ${#step_var_names[@]} -gt $nm_idx ]]; then
-          var_name="${step_var_names[$nm_idx]}"
-        fi
-
-        echo "${var_name^^}=${step_vars[$i]}"
-        export "${var_name^^}"="${step_vars[$i]}"
-      done
-
-      # does the env file exist? then load it
-      #export $(grep -v '^#' ".buildkite/deploy/${env_name}.env" | xargs)
-
-      # buildkite-agent pipeline upload .buildkite/deploy-steps.yml
-      echo "write ${selector_template} with env"
-    )
-  done <<< "$auto_selections"
-fi
+write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
