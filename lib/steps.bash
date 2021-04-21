@@ -16,35 +16,77 @@ function write_steps() {
       if [[ -z $selection ]]; then
         continue
       fi
-
       readarray -d ';' -t step_vars <<< "$selection"
 
       # for each selected environment, write the template with the required variable names
       (
+        local step_env=""
+
+        msg="--- Writing template \"${template}\""
+
         # the first item is always called environment
         if [[ ${#step_vars[@]} -gt 0 ]]; then
-          export STEP_ENVIRONMENT="${step_vars[0]}"
-          echo "STEP_ENVIRONMENT=${step_vars[0]}"
+          step_env="${step_vars[0]}"
+          step_env="$(printf '%s' "$step_env")" # trim trailing space
+
+          msg+=" for environment ${step_env}"
         fi
+        export STEP_ENVIRONMENT="\"${step_env}\""
+
+        echo "${msg}"
+        echo "Environment setup:"
+        echo "STEP_ENVIRONMENT=${STEP_ENVIRONMENT}"
 
         # output > 1 as named in step-var-names, making up a default if needed
         for ((i=1; i < ${#step_vars[@]}; ++i)); do
+          val="$(printf '%s' "${step_vars[$i]}")" # trim trailing space
+
           nm_idx=$i-1
           var_name="step_var_${i}"
           if [[ ${#var_names[@]} -gt $nm_idx ]]; then
             var_name="${var_names[$nm_idx]}"
           fi
 
-          echo "${var_name^^}=${step_vars[$i]}"
-          export "${var_name^^}"="${step_vars[$i]}"
+          echo "${var_name^^}=\"${val}\""
+          export "${var_name^^}"="${val}"
         done
 
-        # does the env file exist? then load it. this will need to be more robust probably
-        #export $(grep -v '^#' ".buildkite/deploy/${env_name}.env" | xargs)
+        # find env file based on location of template
+        local env_file; env_file="$(env_filename_for_environment "${template}" "${step_env}")"
+        if [[ -f "${env_file}" ]]; then
+          echo "=> loading ${env_file} into environment..."
+          load_env_file "${env_file}"
+        else
+          echo "=> env file ${env_file} not found, skipping load."
+        fi
 
-        # buildkite-agent pipeline upload .buildkite/deploy-steps.yml
-        echo "write ${template} with env"
+        buildkite-agent pipeline upload "${template}"
       )
     done <<< "$selected_environments"
   fi
+}
+
+function env_filename_for_environment() {
+  local template="${1}"
+  local step_env="${2}"
+
+  local dir; dir="$(dirname "${template}")"
+
+  echo "${dir}/${step_env}.env"
+}
+
+function load_env_file() {
+  local env_file="${1}"
+
+  if [[ ! -f "${env_file}" ]]; then
+    return
+  fi
+
+  # FIXME this doesn't handle a lot of cases right now, including spaces and multi-line values
+  local vars; vars="$(grep -v '^#' "${env_file}")"
+
+  echo "$vars"
+
+  #shellcheck disable=SC2046
+  export $(xargs <<< "${vars}")
 }
