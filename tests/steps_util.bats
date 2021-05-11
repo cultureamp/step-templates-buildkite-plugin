@@ -1,5 +1,6 @@
-
 #!/usr/bin/env bats
+
+set -eou pipefail
 
 load '/usr/local/lib/bats/load.bash'
 load '../lib/steps'

@@ -24,18 +24,18 @@ function write_steps() {
 
         msg="--- Writing template \"${template}\""
 
-        # the first item is always called environment
+        # the first item is always called "STEP_ENVIRONMENT"
         if [[ ${#step_vars[@]} -gt 0 ]]; then
           step_env="${step_vars[0]}"
           step_env="$(printf '%s' "$step_env")" # trim trailing space
 
-          msg+=" for environment ${step_env}"
+          msg+=" for environment \"${step_env}\""
         fi
-        export STEP_ENVIRONMENT="\"${step_env}\""
+        export STEP_ENVIRONMENT="${step_env}"
 
         echo "${msg}"
         echo "Environment setup:"
-        echo "STEP_ENVIRONMENT=${STEP_ENVIRONMENT}"
+        echo "STEP_ENVIRONMENT=\"${STEP_ENVIRONMENT}\""
 
         # output > 1 as named in step-var-names, making up a default if needed
         for ((i=1; i < ${#step_vars[@]}; ++i)); do
@@ -43,7 +43,7 @@ function write_steps() {
 
           nm_idx=$i-1
           var_name="step_var_${i}"
-          if [[ ${#var_names[@]} -gt $nm_idx ]]; then
+          if [[ ${#var_names[@]} -gt $nm_idx && -n "${var_names[$nm_idx]}" ]]; then
             var_name="${var_names[$nm_idx]}"
           fi
 
@@ -84,8 +84,6 @@ function load_env_file() {
 
   # FIXME this doesn't handle a lot of cases right now, including spaces and multi-line values
   local vars; vars="$(grep -v '^#' "${env_file}")"
-
-  echo "$vars"
 
   #shellcheck disable=SC2046
   export $(xargs <<< "${vars}")
