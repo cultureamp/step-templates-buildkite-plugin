@@ -10,37 +10,53 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 step_template="$(plugin_read_config "TEMPLATE")"
 selector_template="$(plugin_read_config "SELECTOR")"
-
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
-
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
 
-if [[ -z "$step_template" ]] ; then
-  echo "+++ ❌ Step templates plugin error"
-  echo "No 'step_template' argument provided: cannot produce pipeline fragments without the template."
+if [[ -z "${step_template}" ]] ; then
+  1>&2 echo "+++ ❌ Step templates plugin error"
+  1>&2 echo "No 'step_template' argument provided: cannot produce pipeline fragments without the template."
   exit 1
 fi
 
-if [[ -z "$selector_template" ]]  && [[ -z ${#auto_selections[@]} ]] ; then
-  echo "+++ ❌ Step templates plugin error"
-  echo "Neither selector_template nor auto_selections specified: nothing to do."
+if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then
+  1>&2 echo "+++ ❌ Step templates plugin error"
+  1>&2 echo "Neither selector_template nor auto_selections specified: nothing to do."
   exit 1
 fi
 
 # does the template exist?
-
-# reverse order
-
-# selector_template
-if [[ "${SELECTOR:-}" = "true" ]]; then
-  # The block step will appear last
-  buildkite-agent pipeline upload .buildkite/deploy-selector.yml
+if [[ ! -f "${env_file}" ]]; then
+  1>&2 echo "+++ ❌ Step templates plugin error"
+  1>&2 echo "Neither selector_template nor auto_selections specified: nothing to do."
+  exit 1
 fi
 
-# auto-selections
-# if [[ -z "$selected_environments" ]]; then
-#   selected_environments=$(buildkite-agent meta-data get "deploy-environment" --default "")
-# fi
+
+# template fragements are written in reverse order: each fragment will be rendered immediately
+# after the currently executing step.
 
 
-write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
+# upload the selection steps template to the pipeline
+if [[ -n "${selector_template}" ]]; then
+  # The block step will appear last
+  buildkite-agent pipeline upload "${selector_template}"
+fi
+
+# write items selected and held in metadata
+key="$(grep -P -o "(?<=key: )[\w-]+" "${selector_template}")"
+if [[ -z "$key" ]]; then
+  1>&2 echo "+++ ❌ Step templates plugin error"
+  1>&2 echo "Cannot find 'key' for select in selection template."
+  exit 1
+fi
+
+selected_environments=$(buildkite-agent meta-data get "$key" --default "")
+if [[ -n "$selected_environments" ]]; then
+  write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
+fi
+
+# write auto-selections
+if [[ -n "${auto_selections}" ]]; then
+  write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
+fi
