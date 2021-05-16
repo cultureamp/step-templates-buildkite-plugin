@@ -8,8 +8,8 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # shellcheck source=lib/steps.bash
 . "$DIR/../lib/steps.bash"
 
-step_template="$(plugin_read_config "TEMPLATE")"
-selector_template="$(plugin_read_config "SELECTOR")"
+step_template="$(plugin_read_config "STEP_TEMPLATE")"
+selector_template="$(plugin_read_config "SELECTOR_TEMPLATE")"
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
 
@@ -21,21 +21,20 @@ fi
 
 if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then
   1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "Neither selector_template nor auto_selections specified: nothing to do."
+  1>&2 echo "Neither selector-template nor auto-selections specified: nothing to do."
   exit 1
 fi
 
 # does the template exist?
-if [[ ! -f "${env_file}" ]]; then
+if [[ ! -f "${step_template}" ]]; then
   1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "Neither selector_template nor auto_selections specified: nothing to do."
+  1>&2 echo "Specified step template does not exist: '${step_template}'"
   exit 1
 fi
 
 
 # template fragements are written in reverse order: each fragment will be rendered immediately
 # after the currently executing step.
-
 
 # upload the selection steps template to the pipeline
 if [[ -n "${selector_template}" ]]; then
@@ -44,16 +43,18 @@ if [[ -n "${selector_template}" ]]; then
 fi
 
 # write items selected and held in metadata
-key="$(grep -P -o "(?<=key: )[\w-]+" "${selector_template}")"
-if [[ -z "$key" ]]; then
-  1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "Cannot find 'key' for select in selection template."
-  exit 1
+key=""
+if [[ -z "$key" && -f "${selector_template}" ]]; then
+  key="$(grep -P -o "(?<=key: )[\w-]+" "${selector_template}" || true)"
 fi
 
-selected_environments=$(buildkite-agent meta-data get "$key" --default "")
-if [[ -n "$selected_environments" ]]; then
-  write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
+if [[ -n "${key}" ]]; then
+  echo "Finding selected environments in metadata for key '${key}'"
+  buildkite-agent meta-data get "${key}" --default ""
+  selected_environments="$(buildkite-agent meta-data get "${key}" --default "")"
+  if [[ -n "${selected_environments}" ]]; then
+    write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
+  fi
 fi
 
 # write auto-selections

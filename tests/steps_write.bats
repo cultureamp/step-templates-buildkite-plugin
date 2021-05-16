@@ -9,15 +9,8 @@ load '../lib/steps'
 export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 
 setup() {
-  [ ! -d "/tmp/bin" ] && mkdir /tmp/bin
-  cat > /tmp/bin/buildkite-agent <<<'
-#!/bin/bash
-echo "stubargs($STEP_ENVIRONMENT):$@"
-env | grep STEP_ | xargs -n 1 echo "stubenv($STEP_ENVIRONMENT):"
-env | grep NAMED_ | xargs -n 1 echo "stubnamed($STEP_ENVIRONMENT):"
-env | grep file_ | xargs -n 1 echo "stubfile($STEP_ENVIRONMENT):"
-'
-  chmod u+x /tmp/bin/buildkite-agent
+  export unstub_path="$PATH"
+  export PATH="$BATS_TEST_DIRNAME/fixtures/bin:$PATH"
 
   mkdir /tmp/steps 2>&1 | true
   cat > /tmp/steps/c.env <<<'
@@ -26,7 +19,7 @@ file_arg=loaded
 }
 
 teardown() {
-  [ -f "/tmp/bin/buildkite-agent" ] && rm /tmp/bin/buildkite-agent
+  export PATH="$unstub_path"
   [ -d "/tmp/steps" ] && rm -rf /tmp/steps
 }
 
