@@ -16,7 +16,8 @@ function write_steps() {
       if [[ -z $selection ]]; then
         continue
       fi
-      readarray -d ';' -t step_vars <<< "$selection"
+
+      IFS=';' read -ra step_vars <<< "$selection"
 
       # for each selected environment, write the template with the required variable names
       (
