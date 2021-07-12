@@ -179,6 +179,22 @@ REGION=us-west-1
 A list of environment pre-selections that will be rendered immediately by the plugin
 using the values specified (semi-colon separated).
 
+When a template is rendered as an auto-selection, the value of the standard
+Buildkite variable `BUILDKITE_PIPELINE_DEFAULT_BRANCH` will be copied to an
+environment variable named `AUTO_SELECTION_DEFAULT_BRANCH`. This allows steps
+rendered for auto-selections to use branch filters that work differently. For
+example, a step definition like:
+
+```yaml
+steps:
+  - label: "Deploy to ${STEP_ENVIRONMENT} (${REGION})"
+    command: "bin/ci_deploy"
+    branches: "${AUTO_SELECTION_DEFAULT_BRANCH:-*}"
+```
+
+When output as an auto-selection, it will only run on the default branch. When
+output from a selector, it will run on any branch.
+
 ### `selector-template` (Optional, string)
 
 A template containing the available environment specified as a Buildkite pipeline
