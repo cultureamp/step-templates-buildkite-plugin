@@ -59,5 +59,12 @@ fi
 
 # write auto-selections
 if [[ -n "${auto_selections}" ]]; then
-  write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
+  (
+    # Write the default branch for the pipeline into the environment just for
+    # automatic steps. Allows builds to vary branch selectors on an automatic
+    # build.
+    export AUTO_SELECTION_DEFAULT_BRANCH="${BUILDKITE_PIPELINE_DEFAULT_BRANCH}"
+
+    write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
+  )
 fi

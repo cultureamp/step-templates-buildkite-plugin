@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# used to stub buildkite-ageent
+# used to stub buildkite-agent
 # the stub library interacts poorly with the read loop present in write_steps
 
 if [[ "${1:-}" == "meta-data" ]]; then
@@ -14,3 +14,4 @@ echo "stubargs($STEP_ENVIRONMENT):$@"
 env | grep STEP_ | xargs -n 1 echo "stubenv($STEP_ENVIRONMENT):"
 env | grep NAMED_ | xargs -n 1 echo "stubnamed($STEP_ENVIRONMENT):"
 env | grep file_ | xargs -n 1 echo "stubfile($STEP_ENVIRONMENT):"
+env | grep AUTO_ | xargs -n 1 echo "stubauto($STEP_ENVIRONMENT):"
