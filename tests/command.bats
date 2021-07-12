@@ -6,6 +6,7 @@ load '/usr/local/lib/bats/load.bash'
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 
 setup() {
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH="default-value-from-setup"
   export unstub_path="$PATH"
   export PATH="$BATS_TEST_DIRNAME/fixtures/bin:$PATH"
   [ ! -f "/tmp/step-template.yaml" ] && touch /tmp/step-template.yaml
@@ -45,6 +46,19 @@ teardown() {
   assert_success
   assert_output --partial "stubenv(auto-one): STEP_ENVIRONMENT=auto-one"
   assert_output --partial "stubenv(auto-two): STEP_ENVIRONMENT=auto-two"
+}
+
+@test "Writes additional branch variable for auto selections" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_1="auto-two"
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH="default-branch"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "stubauto(auto-one): AUTO_SELECTION_DEFAULT_BRANCH=default-branch"
+  assert_output --partial "stubauto(auto-two): AUTO_SELECTION_DEFAULT_BRANCH=default-branch"
 }
 
 @test "Writes steps from meta-data selections" {
