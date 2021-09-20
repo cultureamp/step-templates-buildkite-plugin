@@ -3,7 +3,17 @@
 # used to stub buildkite-agent
 # the stub library interacts poorly with the read loop present in write_steps
 
-if [[ "${1:-}" == "meta-data" ]]; then
+if [[ "${1:-}" == "meta-data" && "${2:-}" == "get"  ]]; then
+
+    # make sure the arguments are somewhat correct
+    if [[ -z "${3}" ]]; then
+        1>&2 echo "meta-data name not specified"
+        exit 1
+    elif [[ "${3}" == *$'\n'* ]]; then
+        1>&2 echo "meta-data name includes a newline"
+        exit 1
+    fi
+
     echo "select-one
 select-two
 "

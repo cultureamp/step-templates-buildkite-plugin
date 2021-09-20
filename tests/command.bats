@@ -12,6 +12,8 @@ setup() {
   [ ! -f "/tmp/step-template.yaml" ] && touch /tmp/step-template.yaml
   cat > "/tmp/selector-template.yaml" <<<'
   key: select-key
+
+  key: select-key
   '
 }
 
