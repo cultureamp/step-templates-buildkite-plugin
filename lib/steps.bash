@@ -84,5 +84,6 @@ function load_env_file() {
   fi
 
   awk '$0 ~ /^([a-zA-Z]).*=/ {print "export " $0 " ; "}' "${env_file}" | while read -r set_var_cmd; do eval "$set_var_cmd"; done
+  export
 
 }
