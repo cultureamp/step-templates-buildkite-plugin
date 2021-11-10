@@ -83,9 +83,9 @@ function load_env_file() {
     return
   fi
 
-  # FIXME this doesn't handle a lot of cases right now, including spaces and multi-line values
-  local vars; vars="$(grep -v '^#' "${env_file}")"
+  local vars ;  vars="$( awk -F '=' '$1 ~ /^([a-zA-Z]).*=/ {print $1}' "${env_file}" )"
+  # shellcheck disable=SC1090
+  source "$env_file"
+  export vars
 
-  #shellcheck disable=SC2046
-  export $(xargs <<< "${vars}")
 }
