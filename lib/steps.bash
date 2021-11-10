@@ -83,9 +83,15 @@ function load_env_file() {
     return
   fi
 
-  # FIXME this doesn't handle a lot of cases right now, including spaces and multi-line values
-  local vars; vars="$(grep -v '^#' "${env_file}")"
+  if grep -q '^export \w' "${env_file}"; then
+    # contains export statements
+    source "${env_file}"
+  else
+    # This only handles simple cases; values with spaces and multiple lines
+    # should use the `export` syntax.
+    local vars; vars="$(grep -v '^#' "${env_file}")"
 
-  #shellcheck disable=SC2046
-  export $(xargs <<< "${vars}")
+    #shellcheck disable=SC2046
+    export $(xargs <<< "${vars}")
+  fi
 }

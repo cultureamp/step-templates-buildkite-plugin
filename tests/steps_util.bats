@@ -27,3 +27,11 @@ load '../lib/steps'
     assert_equal "${two}" "second"
     assert_equal "${three}" "third"
 }
+
+@test "load_env_file loads file with spaces in values into environment" {
+    load_env_file "./tests/fixtures/env/spaces.env"
+
+    assert_equal "${onespace}" "first one"
+    assert_equal "${twospace}" "second two"
+    assert_equal "${threespace}" "third three"
+}
