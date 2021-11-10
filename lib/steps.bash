@@ -83,7 +83,12 @@ function load_env_file() {
     return
   fi
 
-  while read -r set_var_cmd; do eval "$set_var_cmd"; done < $(awk '$0 ~ /^([a-zA-Z]).*=/ {print "export " $0 " ; "}' "${env_file}")
+  local vars_to_export ; vars_to_export="$(mktemp)"
+
+  awk '$0 ~ /^([a-zA-Z]).*=/ {print "export " $0 " ; "}' "${env_file}" | tee "$vars_to_export"
+
+  #shellcheck disable=SC1090
+  source "$vars_to_export"
   export
 
 }
