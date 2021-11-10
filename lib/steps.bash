@@ -83,11 +83,6 @@ function load_env_file() {
     return
   fi
 
-  local vars ;  vars="$( awk -F '=' '$0 ~ /^([a-zA-Z]).*=/ {print $1}' "${env_file}" )"
-  # shellcheck disable=SC1090
-  source "$env_file"
-  for var in $vars ; do export var ; done
-
-  export
+  awk '$0 ~ /^([a-zA-Z]).*=/ {print "export " $0 " ; "}' "${env_file}" | while read -r set_var_cmd; do eval "$set_var_cmd"; done
 
 }
