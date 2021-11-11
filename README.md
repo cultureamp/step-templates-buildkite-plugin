@@ -79,7 +79,7 @@ Given the following in the `pipeline.yml`:
 ```yaml
 steps:
   - plugins:
-      - cultureamp/step-templates#v1.0.0:
+      - cultureamp/step-templates#v1.1.1:
           step-template: deploy-steps.yml
           step-var-names: ["type", "region"]
           auto-selections:
@@ -128,7 +128,7 @@ steps:
             value: staging-eu;preprod;eu-west-1
 
   - plugins:
-      - cultureamp/step-templates#v1.0.0:
+      - cultureamp/step-templates#v1.1.1:
           step-template: deploy-steps.yml
           # names the second and subsequent variables supplied as arguments
           # environment (`ENV` and `REGION`). If this wasn't supplied, they would be called:
