@@ -79,7 +79,7 @@ Given the following in the `pipeline.yml`:
 ```yaml
 steps:
   - plugins:
-      - cultureamp/step-templates#v1.0.0:
+      - cultureamp/step-templates#v1.1.1:
           step-template: deploy-steps.yml
           step-var-names: ["type", "region"]
           auto-selections:
@@ -104,7 +104,6 @@ steps:
     concurrency_group: ${BUILDKITE_PIPELINE_SLUG}/${STEP_ENVIRONMENT}/${TYPE}/${REGION}/deploy
     agents:
       queue: ${AGENT}
-
 ```
 
 **`deploy-selector.yaml`**
@@ -124,12 +123,12 @@ steps:
           - label: Env 1
             # semi-colon separated, supplied to the template as environment variables. The first will
             # be called `STEP_ENVIRONMENT`, the second `ENV` and the third, `REGION`
-            value: staging-us;preprod;us-west-2
+            value: development-us;flamingo;us-west-2
           - label: Env 2
             value: staging-eu;preprod;eu-west-1
 
   - plugins:
-      - cultureamp/step-templates#v1.0.0:
+      - cultureamp/step-templates#v1.1.1:
           step-template: deploy-steps.yml
           # names the second and subsequent variables supplied as arguments
           # environment (`ENV` and `REGION`). If this wasn't supplied, they would be called:
@@ -138,12 +137,53 @@ steps:
           selector-template: deploy-selector.yml
 ```
 
-You could (optionally) supply a file called `staging-us.env` alongside `deploy-steps.yml`, with
-additional environment variables to set for that environment:
+You could (optionally) supply a file called `staging-us.env` alongside
+`deploy-steps.yml`, with additional environment variables to set for that
+environment:
 
 ```env
 AGENT=staging_agent_pool_name
 ```
+
+This is an easy way of adding additional variables per environment without
+making the selector definitions very long and hard to read.
+
+## How it works
+
+The block step (from the `deploy-selector.yaml`) has a [`select`
+field](https://buildkite.com/docs/pipelines/block-step#select-input-attributes).
+When Buildkite receives user input from the UI, it creates a buildkite meta-data
+item with the key supplied for the `select` field (`deploy-environment`).
+Buildkite sets the value of that key to a newline-separated string of the values
+selected.
+
+This will be something like:
+
+```csv
+development-us;flamingo;us-west-2
+staging-us;preprod;us-west-2
+```
+
+The `deploy-selector.yaml` has _another_ step that executes the plugin, running
+after a selection occurs. The plugin reads the meta-data key and iterates over
+the lines (created from the user selection).
+
+For each line, it's split on `;`, and the first value is always assigned to
+`STEP_ENVIRONMENT`. Since `step-var-names: ["type", "region"]` is defined, the
+next two components will be assigned to the `TYPE` and `REGION` variable names
+respectively
+
+So for the first line of the above example, we'll get:
+
+```shell
+export STEP_ENVIRONMENT=development-us
+export TYPE=flamingo
+export REGION=us-west-2
+```
+
+These variables are in the environment when the plugin runs `buildkite-agent
+pipeline upload` for `deploy-steps.yml`, so any variable references in the YAML
+will be interpolated by the agent correctly.
 
 ## Configuration
 
@@ -201,7 +241,17 @@ A template containing the available environment specified as a Buildkite pipelin
 `block` step that supplies a set of `fields` for selection. The selection may be
 optional.
 
+> **Note:** The value for `key:` has to be unique per pipeline, as it is used as
+the name of the metadata key that the selections are read from. If you use have
+a pipeline with multiple block steps that have options, each of them has to be
+assigned a different value.
+
 ## Developing
+
+This repository tests its functionality using the BATS testing framework for
+Bash. Be sure to add tests for any new functionality. Using the tests can
+significantly speed development time when compared to testing in a real
+pipeline, and it's a big win for maintenance.
 
 To run the tests:
 
