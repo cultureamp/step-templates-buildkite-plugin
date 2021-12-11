@@ -214,6 +214,18 @@ TYPE=preprod
 REGION=us-west-1
 ```
 
+**Alternatively:**
+
+It is possible to use `export` style syntax in the env file for more complex use cases.
+
+```shell
+export STEP_ENVIRONMENT="staging"
+export TYPE="preprod"
+export REGION="us-west-1"
+```
+
+The two syntaxes cannot be used in the same file. The presence of a line with the prefix `export \w` will trigger the alternate syntax.
+
 ### `auto-selections` (Optional, string)
 
 A list of environment pre-selections that will be rendered immediately by the plugin
