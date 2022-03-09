@@ -247,6 +247,8 @@ steps:
 When output as an auto-selection, it will only run on the default branch. When
 output from a selector, it will run on any branch.
 
+More details can be found [in the wiki](../../wiki/Using-auto-selections).
+
 ### `selector-template` (Optional, string)
 
 A template containing the available environment specified as a Buildkite pipeline
