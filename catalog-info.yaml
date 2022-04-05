@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: step-templates-buildkite-plugin
+  description: >
+    Buildkite plugin that allows steps to be injected into the pipeline based on
+    a common template.
+  tags:
+    - users-internal
+    - camp-platform
+    - data-internal-use-only
+    - buildkite-plugin
+  annotations:
+    github.com/project-slug: cultureamp/ecr-scan-results-buildkite-plugin
+    github.com/team-slug: cultureamp/core-services
+spec:
+  type: library
+  owner: core-services
+  lifecycle: production
