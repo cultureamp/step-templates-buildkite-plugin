@@ -11,7 +11,7 @@ metadata:
     - data-internal-use-only
     - buildkite-plugin
   annotations:
-    github.com/project-slug: cultureamp/ecr-scan-results-buildkite-plugin
+    github.com/project-slug: cultureamp/step-templates-buildkite-plugin
     github.com/team-slug: cultureamp/core-services
 spec:
   type: library
