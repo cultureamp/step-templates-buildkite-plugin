@@ -60,7 +60,8 @@ render_step() {
 
 }
 
-for step_template in "${step_templates[@]}" ; do
+while IFS=$'\n' read -r step_template;
+do
 
   if [[ -z "${step_template}" ]] ; then
     1>&2 echo "+++ ❌ Step templates plugin error"
@@ -76,4 +77,4 @@ for step_template in "${step_templates[@]}" ; do
 
   render_step
 
-done
+done <<< "$step_templates"
