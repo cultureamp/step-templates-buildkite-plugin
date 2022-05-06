@@ -13,10 +13,17 @@ step_templates="$(plugin_read_list "STEP_TEMPLATES")"
 selector_template="$(plugin_read_config "SELECTOR_TEMPLATE")"
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
+auto_selections_file="$(plugin_read_config "SELECTOR_TEMPLATE")"
 
-if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then
+if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] && [[ -z "${auto_selections_file}" ]]; then
   1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "Neither selector-template nor auto-selections specified: nothing to do."
+  1>&2 echo "Neither selector-template nor auto-selections or auto-selections-file specified: nothing to do."
+  exit 1
+fi
+
+if [[ -n "${auto_selections}}" ]] && [[ -n "${auto_selection_file}" ]] ; then
+  1>&2 echo "+++ ❌ Step templates plugin error"
+  1>&2 echo "You can not provide auto_selections and auto_selection_file at the same time."
   exit 1
 fi
 
@@ -47,6 +54,16 @@ render_step() {
   fi
 
   # write auto-selections
+  if [[ -n "${auto_selections_file}" ]] && [[ -e "${auto_selections_file}" ]]; then
+    auto_selections="$(cat "${auto_selections_file}")"
+  elif [[ -z "${auto_selections_file}" ]] ; then
+    /bin/true
+  else
+    1>&2 echo "+++ ❌ Step templates plugin error"
+    1>&2 echo "No 'auto_selections_file' found at: ${auto_selections_file}"
+    exit 1
+  fi
+
   if [[ -n "${auto_selections}" ]]; then
     (
       # Write the default branch for the pipeline into the environment just for

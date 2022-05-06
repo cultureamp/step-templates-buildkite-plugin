@@ -12,6 +12,8 @@ configuration:
       type: array
     auto-selections:
       type: array
+    auto-selections-file:
+      type: string
     selector-template:
       type: string
   additionalProperties: false
