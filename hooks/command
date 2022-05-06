@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -ueo pipefail
+[ "${DEBUG:-}" == "true" ] && set -x ||:
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
@@ -8,7 +9,7 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # shellcheck source=lib/steps.bash
 . "$DIR/../lib/steps.bash"
 
-step_templates="$(plugin_read_config "STEP_TEMPLATES")"
+step_templates="$(plugin_read_list "STEP_TEMPLATES")"
 selector_template="$(plugin_read_config "SELECTOR_TEMPLATE")"
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
@@ -59,7 +60,7 @@ render_step() {
 
 }
 
-for step_template in ${step_templates} ; do
+for step_template in "${step_templates[@]}" ; do
 
   if [[ -z "${step_template}" ]] ; then
     1>&2 echo "+++ ❌ Step templates plugin error"
