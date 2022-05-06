@@ -13,7 +13,7 @@ step_templates="$(plugin_read_list "STEP_TEMPLATES")"
 selector_template="$(plugin_read_config "SELECTOR_TEMPLATE")"
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
-auto_selections_file="$(plugin_read_config "SELECTOR_TEMPLATE")"
+auto_selections_file="$(plugin_read_config "AUTO_SELECTIONS_FILE")"
 
 if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] && [[ -z "${auto_selections_file}" ]]; then
   1>&2 echo "+++ ❌ Step templates plugin error"
