@@ -21,9 +21,9 @@ if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] && [[ -z "$
   exit 1
 fi
 
-if [[ -n "${auto_selections}}" ]] && [[ -n "${auto_selection_file}" ]] ; then
+if [[ -n "${auto_selections}}" ]] && [[ -n "${auto_selections_file}" ]] ; then
   1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "You can not provide auto_selections and auto_selection_file at the same time."
+  1>&2 echo "You can not provide auto_selections and auto_selections_file at the same time."
   exit 1
 fi
 
