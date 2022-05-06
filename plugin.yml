@@ -6,6 +6,8 @@ configuration:
   properties:
     step-template:
       type: string
+    step-templates:
+      type: [string, array]
     step-var-names:
       type: array
     auto-selections:

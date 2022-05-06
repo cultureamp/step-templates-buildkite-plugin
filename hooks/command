@@ -8,16 +8,10 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # shellcheck source=lib/steps.bash
 . "$DIR/../lib/steps.bash"
 
-step_template="$(plugin_read_config "STEP_TEMPLATE")"
+step_templates="$(plugin_read_config "STEP_TEMPLATES")"
 selector_template="$(plugin_read_config "SELECTOR_TEMPLATE")"
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
-
-if [[ -z "${step_template}" ]] ; then
-  1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "No 'step_template' argument provided: cannot produce pipeline fragments without the template."
-  exit 1
-fi
 
 if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then
   1>&2 echo "+++ ❌ Step templates plugin error"
@@ -25,46 +19,60 @@ if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then
   exit 1
 fi
 
-# does the template exist?
-if [[ ! -f "${step_template}" ]]; then
-  1>&2 echo "+++ ❌ Step templates plugin error"
-  1>&2 echo "Specified step template does not exist: '${step_template}'"
-  exit 1
-fi
+render_step() {
 
+  # template fragements are written in reverse order: each fragment will be rendered immediately
+  # after the currently executing step.
 
-# template fragements are written in reverse order: each fragment will be rendered immediately
-# after the currently executing step.
-
-# upload the selection steps template to the pipeline
-if [[ -n "${selector_template}" ]]; then
-  # The block step will appear last
-  buildkite-agent pipeline upload "${selector_template}"
-fi
-
-# write items selected and held in metadata
-key=""
-if [[ -z "$key" && -f "${selector_template}" ]]; then
-  key="$(grep -P -o "(?<=key: )[\w-]+" "${selector_template}" | head -n1 || true)"
-fi
-
-if [[ -n "${key}" ]]; then
-  echo "Finding selected environments in metadata for key '${key}'"
-  buildkite-agent meta-data get "${key}" --default ""
-  selected_environments="$(buildkite-agent meta-data get "${key}" --default "")"
-  if [[ -n "${selected_environments}" ]]; then
-    write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
+  # upload the selection steps template to the pipeline
+  if [[ -n "${selector_template}" ]]; then
+    # The block step will appear last
+    buildkite-agent pipeline upload "${selector_template}"
   fi
-fi
 
-# write auto-selections
-if [[ -n "${auto_selections}" ]]; then
-  (
-    # Write the default branch for the pipeline into the environment just for
-    # automatic steps. Allows builds to vary branch selectors on an automatic
-    # build.
-    export AUTO_SELECTION_DEFAULT_BRANCH="${BUILDKITE_PIPELINE_DEFAULT_BRANCH}"
+  # write items selected and held in metadata
+  key=""
+  if [[ -z "$key" && -f "${selector_template}" ]]; then
+    key="$(grep -P -o "(?<=key: )[\w-]+" "${selector_template}" | head -n1 || true)"
+  fi
 
-    write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
-  )
-fi
+  if [[ -n "${key}" ]]; then
+    echo "Finding selected environments in metadata for key '${key}'"
+    buildkite-agent meta-data get "${key}" --default ""
+    selected_environments="$(buildkite-agent meta-data get "${key}" --default "")"
+    if [[ -n "${selected_environments}" ]]; then
+      write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
+    fi
+  fi
+
+  # write auto-selections
+  if [[ -n "${auto_selections}" ]]; then
+    (
+      # Write the default branch for the pipeline into the environment just for
+      # automatic steps. Allows builds to vary branch selectors on an automatic
+      # build.
+      export AUTO_SELECTION_DEFAULT_BRANCH="${BUILDKITE_PIPELINE_DEFAULT_BRANCH}"
+
+      write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
+    )
+  fi
+
+}
+
+for step_template in ${step_templates} ; do
+
+  if [[ -z "${step_template}" ]] ; then
+    1>&2 echo "+++ ❌ Step templates plugin error"
+    1>&2 echo "No 'step_template' argument provided: cannot produce pipeline fragments without the template."
+    exit 1
+  fi
+
+  if [[ ! -f "${step_template}" ]]; then
+    1>&2 echo "+++ ❌ Step templates plugin error"
+    1>&2 echo "Specified step template does not exist: '${step_template}'"
+    exit 1
+  fi
+
+  render_step
+
+done
