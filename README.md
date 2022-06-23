@@ -133,7 +133,7 @@ steps:
           # names the second and subsequent variables supplied as arguments
           # environment (`ENV` and `REGION`). If this wasn't supplied, they would be called:
           # `STEP_VAR_1` and `STEP_VAR_2`.
-          step-var-names: ["type", "region"]
+          step-var-names: ["env", "region"]
           selector-template: deploy-selector.yml
 ```
 
