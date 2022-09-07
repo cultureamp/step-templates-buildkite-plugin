@@ -55,7 +55,7 @@ render_step() {
 
   # write auto-selections
   if [[ -n "${auto_selections_file}" ]] && [[ -e "${auto_selections_file}" ]]; then
-    auto_selections="$(cat "${auto_selections_file}")"
+    auto_selections="$(grep -v '^#' "${auto_selections_file}")"
   elif [[ -z "${auto_selections_file}" ]] ; then
     /bin/true
   else
