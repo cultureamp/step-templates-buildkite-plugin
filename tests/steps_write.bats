@@ -2,7 +2,7 @@
 
 set -eou pipefail
 
-load '/usr/local/lib/bats/load.bash'
+load "$BATS_PLUGIN_PATH/load.bash"
 load '../lib/steps'
 
 # Uncomment the following line to debug stub failures
