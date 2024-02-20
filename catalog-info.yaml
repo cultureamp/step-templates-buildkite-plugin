@@ -8,7 +8,7 @@ metadata:
   tags:
     - users-internal
     - camp-platform
-    - data-internal-use-only
+    - data-none
     - buildkite-plugin
   annotations:
     github.com/project-slug: cultureamp/step-templates-buildkite-plugin
