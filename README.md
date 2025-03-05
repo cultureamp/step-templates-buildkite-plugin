@@ -81,10 +81,10 @@ steps:
   - plugins:
       - cultureamp/step-templates#v1.2.0:
           step-template: deploy-steps.yml
-          step-var-names: ["type", "region"]
+          step-var-names: ["type", "region", "conditional_example"]
           auto-selections:
-            - "production-us;production;us-west-1"
-            - "production-eu;production;eu-west-2"
+            - "production-us;production;us-west-1;green"
+            - "production-eu;production;eu-west-2;blue"
           selector-template: deploy-selector.yml
 ```
 
@@ -96,6 +96,7 @@ This then will require two other templates to exist, both of which are Buildkite
 # output for each selected environment
 steps:
   - label: "Deploy to ${STEP_ENVIRONMENT} (${REGION})"
+    if: ("${CONDITIONAL_EXAMPLE}" == "blue")
     depends_on: "build"
     command: "bin/ci_deploy"
     env:
@@ -105,6 +106,8 @@ steps:
     agents:
       queue: ${AGENT}
 ```
+
+> **Note:** When using conditionals, ensure they are structured like `("${CONDITIONAL_EXAMPLE}" == "blue")` for them to work correctly.
 
 **`deploy-selector.yaml`**
 
@@ -123,9 +126,9 @@ steps:
           - label: Env 1
             # semi-colon separated, supplied to the template as environment variables. The first will
             # be called `STEP_ENVIRONMENT`, the second `ENV` and the third, `REGION`
-            value: development-us;flamingo;us-west-2
+            value: development-us;flamingo;us-west-2;yellow
           - label: Env 2
-            value: staging-eu;preprod;eu-west-1
+            value: staging-eu;preprod;eu-west-1;red
 
   - plugins:
       - cultureamp/step-templates#v1.2.0:
@@ -133,7 +136,7 @@ steps:
           # names the second and subsequent variables supplied as arguments
           # environment (`ENV` and `REGION`). If this wasn't supplied, they would be called:
           # `STEP_VAR_1` and `STEP_VAR_2`.
-          step-var-names: ["env", "region"]
+          step-var-names: ["env", "region", "conditional_example"]
           selector-template: deploy-selector.yml
 ```
 
