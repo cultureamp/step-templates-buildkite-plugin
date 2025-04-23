@@ -50,7 +50,6 @@ fi
 
 if [[ -n "${key}" ]]; then
   echo "Finding selected environments in metadata for key '${key}'"
-  buildkite-agent meta-data get "${key}" --default ""
   selected_environments="$(buildkite-agent meta-data get "${key}" --default "")"
   if [[ -n "${selected_environments}" ]]; then
     write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
