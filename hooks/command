@@ -33,7 +33,7 @@ if [[ ! -f "${step_template}" ]]; then
 fi
 
 
-# template fragements are written in reverse order: each fragment will be rendered immediately
+# template fragments are written in reverse order: each fragment will be rendered immediately
 # after the currently executing step.
 
 # upload the selection steps template to the pipeline
