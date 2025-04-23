@@ -19,6 +19,11 @@ if [[ -z "${step_template}" ]] ; then
   exit 1
 fi
 
+if [[ -z "${BUILDKITE_JOB_ID}" ]] ; then
+  1>&2 echo "+++ ⚠️ Step templates plugin warning"
+  1>&2 echo "No 'BUILDKITE_JOB_ID' environment variable found: STEP_ID will be empty."
+fi
+
 if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then
   1>&2 echo "+++ ❌ Step templates plugin error"
   1>&2 echo "Neither selector-template nor auto-selections specified: nothing to do."
@@ -52,7 +57,7 @@ if [[ -n "${key}" ]]; then
   echo "Finding selected environments in metadata for key '${key}'"
   selected_environments="$(buildkite-agent meta-data get "${key}" --default "")"
   if [[ -n "${selected_environments}" ]]; then
-    write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
+    write_steps "${step_template}" "${step_var_names}" "${selected_environments}" "${BUILDKITE_JOB_ID:-}"
   fi
 fi
 
@@ -64,6 +69,6 @@ if [[ -n "${auto_selections}" ]]; then
     # build.
     export AUTO_SELECTION_DEFAULT_BRANCH="${BUILDKITE_PIPELINE_DEFAULT_BRANCH}"
 
-    write_steps "${step_template}" "${step_var_names}" "${auto_selections}"
+    write_steps "${step_template}" "${step_var_names}" "${auto_selections}" "${BUILDKITE_JOB_ID:-}"
   )
 fi

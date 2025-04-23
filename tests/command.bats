@@ -7,6 +7,7 @@ load "$BATS_PLUGIN_PATH/load.bash"
 
 setup() {
   export BUILDKITE_PIPELINE_DEFAULT_BRANCH="default-value-from-setup"
+  export BUILDKITE_JOB_ID="7b35feca-d1b9-423a-9cad-4107b6b40dd9"
   export unstub_path="$PATH"
   export PATH="$BATS_TEST_DIRNAME/fixtures/bin:$PATH"
   [ ! -f "/tmp/step-template.yaml" ] && touch /tmp/step-template.yaml
