@@ -45,7 +45,7 @@ fi
 # write items selected and held in metadata
 key=""
 if [[ -z "$key" && -f "${selector_template}" ]]; then
-  key="$(grep -P -o "(?<=key: )[\w-]+" "${selector_template}" | head -n1 || true)"
+  key="$(extract_key_from_template "${selector_template}")"
 fi
 
 if [[ -n "${key}" ]]; then

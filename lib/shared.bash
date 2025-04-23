@@ -31,3 +31,28 @@ function prefix_read_list() {
     echo "${!prefix}"
   fi
 }
+
+# Extract the first occurrence of a "key" field from a YAML template file.
+#
+# Arguments:
+#   $1 - The path to the YAML template file.
+#
+# Behaviour:
+#   - Searches for lines in the file that match the pattern "key: <value>".
+#   - Extracts the value of the first "key" field found.
+#   - If no "key" field is found, returns an empty string.
+#
+# Example:
+#   Given a file with the content:
+#     key: example-key
+#     key: another-key
+#   Running:
+#     extract_key_from_template "template.yaml"
+#   Will return:
+#     example-key
+#
+#   If the file does not contain a "key" field or does not exist, it will return an empty string.
+function extract_key_from_template() {
+  local template="$1"
+  grep -P -o "(?<=key: )[\w-]+" "${template}" | head -n1 || true
+}
