@@ -85,6 +85,7 @@ function load_env_file() {
 
   if grep -q '^export \w' "${env_file}"; then
     # contains export statements
+    # shellcheck disable=SC1090
     source "${env_file}"
   else
     # This only handles simple cases; values with spaces and multiple lines
