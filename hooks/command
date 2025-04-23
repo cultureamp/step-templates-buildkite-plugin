@@ -19,7 +19,7 @@ if [[ -z "${step_template}" ]] ; then
   exit 1
 fi
 
-if [[ -z "${BUILDKITE_JOB_ID}" ]] ; then
+if [[ -z "${BUILDKITE_JOB_ID:-}" ]] ; then
   1>&2 echo "+++ ⚠️ Step templates plugin warning"
   1>&2 echo "No 'BUILDKITE_JOB_ID' environment variable found: STEP_ID will be empty."
 fi
