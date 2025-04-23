@@ -151,6 +151,8 @@ AGENT=staging_agent_pool_name
 This is an easy way of adding additional variables per environment without
 making the selector definitions very long and hard to read.
 
+Additionally, the `STEP_ID` variable provides a unique identifier for each step triggered by the plugin. It can be used to establish step dependencies via `depends_on` or to generate unique keys for steps, such as `deploy-${STEP_ENVIRONMENT}-${STEP_ID}`. This facilitates better coordination and tracking of related steps within the pipeline.
+
 ## How it works
 
 The block step (from the `deploy-selector.yaml`) has a [`select`
@@ -166,6 +168,8 @@ This will be something like:
 development-us;flamingo;us-west-2
 staging-us;preprod;us-west-2
 ```
+
+For each selected environment, the `STEP_ID` variable will also be set to the value of `BUILDKITE_JOB_ID` (if available), allowing steps to reference the unique job ID.
 
 The `deploy-selector.yaml` has _another_ step that executes the plugin, running
 after a selection occurs. The plugin reads the meta-data key and iterates over
