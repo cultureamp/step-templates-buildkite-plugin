@@ -261,11 +261,13 @@ optional.
 #### The `block` `key` value
 
 > [!WARNING]
-> Each `block` step must use a unique `key` within the pipeline. If two or more `block` steps share the same `key`, their selections will overwrite each other in the Buildkite metadata, resulting in unexpected behaviour.
+> Each `block` step must use a unique `key` within the pipeline. If two or more `block` steps share the same `key`, their selections will overwrite each other in the Buildkite metadata, leading to unexpected behaviour.
 
-The `key` field in a `block` step is essential—it defines the metadata key where Buildkite stores the user's selection. This key allows the plugin to later retrieve the selected values using Buildkite’s metadata commands.
+The short version: we use the value of the first `key` field found in the `selector-template` file.
 
-For example, consider the following `block` step:
+This `key` is critical—it defines the metadata entry where Buildkite stores the user’s selection. The plugin then uses this metadata to determine what was selected, typically via `buildkite-agent meta-data get`.
+
+For example, in the following `block` step:
 
 ```yaml
 steps:
