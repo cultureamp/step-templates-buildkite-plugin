@@ -258,10 +258,32 @@ A template containing the available environment specified as a Buildkite pipelin
 `block` step that supplies a set of `fields` for selection. The selection may be
 optional.
 
-> **Note:** The value for `key:` has to be unique per pipeline, as it is used as
-the name of the metadata key that the selections are read from. If you use have
-a pipeline with multiple block steps that have options, each of them has to be
-assigned a different value.
+#### The `block` `key` value
+
+> [!WARNING]
+> Each `block` step must use a unique `key` within the pipeline. If two or more `block` steps share the same `key`, their selections will overwrite each other in the Buildkite metadata, resulting in unexpected behaviour.
+
+The `key` field in a `block` step is essential—it defines the metadata key where Buildkite stores the user's selection. This key allows the plugin to later retrieve the selected values using Buildkite’s metadata commands.
+
+For example, consider the following `block` step:
+
+```yaml
+steps:
+  - block: Deploy to?
+    fields:
+      - select: Environment
+        key: deploy-restricted
+        multiple: true
+        required: true
+        options:
+          - label: Dev
+            value: development
+          - label: Prod
+            value: production
+```
+
+- The `key: deploy-restricted` indicates that the selected environment values will be stored in Buildkite’s metadata under the key `deploy-restricted`.
+- The plugin retrieves this value using `buildkite-agent meta-data get deploy-restricted` to determine which environments the user selected.
 
 ## Developing
 
