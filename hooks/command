@@ -3,9 +3,9 @@ set -ueo pipefail
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
-# shellcheck source=lib/shared.bash
+# shellcheck source=../lib/shared.bash
 . "$DIR/../lib/shared.bash"
-# shellcheck source=lib/steps.bash
+# shellcheck source=../lib/steps.bash
 . "$DIR/../lib/steps.bash"
 
 step_template="$(plugin_read_config "STEP_TEMPLATE")"
@@ -33,7 +33,7 @@ if [[ ! -f "${step_template}" ]]; then
 fi
 
 
-# template fragements are written in reverse order: each fragment will be rendered immediately
+# template fragments are written in reverse order: each fragment will be rendered immediately
 # after the currently executing step.
 
 # upload the selection steps template to the pipeline
@@ -50,7 +50,6 @@ fi
 
 if [[ -n "${key}" ]]; then
   echo "Finding selected environments in metadata for key '${key}'"
-  buildkite-agent meta-data get "${key}" --default ""
   selected_environments="$(buildkite-agent meta-data get "${key}" --default "")"
   if [[ -n "${selected_environments}" ]]; then
     write_steps "${step_template}" "${step_var_names}" "${selected_environments}"
