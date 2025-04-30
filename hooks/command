@@ -21,7 +21,7 @@ fi
 
 if [[ -z "${BUILDKITE_JOB_ID:-}" ]] ; then
   1>&2 echo "+++ ⚠️ Step templates plugin warning"
-  1>&2 echo "No 'BUILDKITE_JOB_ID' environment variable found: STEP_ID will be empty."
+  1>&2 echo "No 'BUILDKITE_JOB_ID' environment variable found: STEP_SELECTOR_ID will be empty."
 fi
 
 if [[ -z "${selector_template}" ]]  && [[ -z "${auto_selections}" ]] ; then

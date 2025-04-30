@@ -75,7 +75,7 @@ teardown() {
   assert_output --partial "stubenv(select-two): STEP_ENVIRONMENT=select-two"
 }
 
-@test "STEP_ID is set when BUILDKITE_JOB_ID is provided" {
+@test "STEP_SELECTOR_ID is set when BUILDKITE_JOB_ID is provided" {
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_SELECTOR_TEMPLATE="/tmp/selector-template.yaml"
   export BUILDKITE_JOB_ID="test-job-id"
@@ -83,10 +83,10 @@ teardown() {
   run "$PWD/hooks/command"
 
   assert_success
-  assert_output --partial "STEP_ID=\"test-job-id\""
+  assert_output --partial "STEP_SELECTOR_ID=\"test-job-id\""
 }
 
-@test "STEP_ID is empty when BUILDKITE_JOB_ID is not provided" {
+@test "STEP_SELECTOR_ID is empty when BUILDKITE_JOB_ID is not provided" {
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_SELECTOR_TEMPLATE="/tmp/selector-template.yaml"
   unset BUILDKITE_JOB_ID
@@ -94,5 +94,5 @@ teardown() {
   run "$PWD/hooks/command"
 
   assert_success
-  assert_output --partial "STEP_ID=\"\""
+  assert_output --partial "STEP_SELECTOR_ID=\"\""
 }
