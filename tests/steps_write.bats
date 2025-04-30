@@ -11,6 +11,7 @@ export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 setup() {
   export unstub_path="$PATH"
   export PATH="$BATS_TEST_DIRNAME/fixtures/bin:$PATH"
+  export BUILDKITE_JOB_ID="7b35feca-d1b9-423a-9cad-4107b6b40dd9"
 
   mkdir /tmp/steps 2>&1 | true
   cat > /tmp/steps/c.env <<<'
@@ -26,7 +27,7 @@ teardown() {
 @test "write_steps runs template for each env" {
   local template="/tmp/steps/template.yaml"
 
-  run write_steps "$template" "" $'a\nb\nc'
+  run write_steps "$template" "" $'a\nb\nc' "$BUILDKITE_JOB_ID"
   assert_success
 
   assert_output --partial "stubargs(a):pipeline upload /tmp/steps/template.yaml"
@@ -37,7 +38,7 @@ teardown() {
 @test "write_steps creates arguments with default names for each env" {
   local template="/tmp/steps/template.yaml"
 
-  run write_steps "$template" "" $'a;aa\nb\nc;c1;c2;c3'
+  run write_steps "$template" "" $'a;aa\nb\nc;c1;c2;c3' "$BUILDKITE_JOB_ID"
   assert_success
 
   assert_output --partial "stubenv(a): STEP_VAR_1=aa"
@@ -50,7 +51,7 @@ teardown() {
 @test "write_steps creates arguments with specified names" {
   local template="/tmp/steps/template.yaml"
 
-  run write_steps "$template" $'named_1\nnamed_2' $'a;aa\nb\nc;c1;c2;c3'
+  run write_steps "$template" $'named_1\nnamed_2' $'a;aa\nb\nc;c1;c2;c3' "$BUILDKITE_JOB_ID"
   assert_success
 
   # named vars should exist where names supplied

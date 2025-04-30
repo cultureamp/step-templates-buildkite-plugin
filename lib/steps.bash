@@ -6,6 +6,7 @@ function write_steps() {
   local template="${1}"
   local raw_var_names="${2}"
   local selected_environments="${3}"
+  local step_id="${4}"
 
   # this is passed as a newline-delimited string, as passing arrays is ... not really a thing
   local var_names; readarray -t var_names <<< "${raw_var_names}"
@@ -33,10 +34,12 @@ function write_steps() {
           msg+=" for environment \"${step_env}\""
         fi
         export STEP_ENVIRONMENT="${step_env}"
+        export STEP_SELECTOR_ID="${step_id}"
 
         echo "${msg}"
         echo "Environment setup:"
         echo "STEP_ENVIRONMENT=\"${STEP_ENVIRONMENT}\""
+        echo "STEP_SELECTOR_ID=\"${STEP_SELECTOR_ID}\""
 
         # output > 1 as named in step-var-names, making up a default if needed
         for ((i=1; i < ${#step_vars[@]}; ++i)); do
