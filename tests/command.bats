@@ -219,3 +219,62 @@ teardown() {
   assert_output --partial "Branch validation failed: branch requirements not met"
   unstub git
 }
+
+@test "require-up-to-date with soft fail-mode succeeds with warning when validation fails" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_FAIL_MODE="soft"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "❌ Current commit is missing changes from origin/main"
+  assert_output --partial "+++ ⚠️ Step templates plugin warning"
+  assert_output --partial "soft-fail mode: continuing without uploading steps"
+  unstub git
+}
+
+@test "require-up-to-date with hard fail-mode fails when validation fails" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_FAIL_MODE="hard"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_failure
+  assert_output --partial "❌ Current commit is missing changes from origin/main"
+  assert_output --partial "+++ ❌ Step templates plugin error"
+  assert_output --partial "Branch validation failed: branch requirements not met"
+  unstub git
+}
+
+@test "require-up-to-date uses hard fail-mode by default" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_failure
+  assert_output --partial "❌ Current commit is missing changes from origin/main"
+  assert_output --partial "+++ ❌ Step templates plugin error"
+  assert_output --partial "Branch validation failed: branch requirements not met"
+  unstub git
+}

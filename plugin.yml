@@ -24,5 +24,9 @@ configuration:
         must-be-branch-head:
           type: boolean
           default: false
+        fail-mode:
+          type: string
+          enum: ["hard", "soft"]
+          default: "hard"
       additionalProperties: false
   additionalProperties: false
