@@ -96,3 +96,126 @@ teardown() {
   assert_success
   assert_output --partial "STEP_SELECTOR_ID=\"\""
 }
+
+@test "require-up-to-date disabled by default" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  refute_output --partial "Checking if current branch is up-to-date"
+}
+
+@test "require-up-to-date succeeds when enabled and branch is up-to-date" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  unstub git
+}
+
+@test "require-up-to-date fails when enabled and branch is behind" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_failure
+  assert_output --partial "❌ Current commit is missing changes from origin/main"
+  assert_output --partial "Branch validation failed"
+  unstub git
+}
+
+@test "require-up-to-date uses default branch when not specified" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  unstub git
+}
+
+@test "require-up-to-date works with custom branch" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="develop"
+
+  stub git \
+    "fetch origin develop : exit 0" \
+    "merge-base --is-ancestor HEAD origin/develop : exit 0"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/develop"
+  unstub git
+}
+
+@test "require-up-to-date with must-be-branch-head succeeds when both checks pass" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_MUST_BE_BRANCH_HEAD="true"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo feature-branch" \
+    "fetch origin feature-branch : exit 0" \
+    "diff --quiet HEAD origin/feature-branch : exit 0"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "✅ Current commit is the latest on origin/feature-branch"
+  unstub git
+}
+
+@test "require-up-to-date with must-be-branch-head fails when current branch is behind" {
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_MUST_BE_BRANCH_HEAD="true"
+
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo feature-branch" \
+    "fetch origin feature-branch : exit 0" \
+    "diff --quiet HEAD origin/feature-branch : exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_failure
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "❌ Current commit is not the latest on origin/feature-branch"
+  assert_output --partial "Branch validation failed: branch requirements not met"
+  unstub git
+}

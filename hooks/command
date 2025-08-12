@@ -12,6 +12,9 @@ step_template="$(plugin_read_config "STEP_TEMPLATE")"
 selector_template="$(plugin_read_config "SELECTOR_TEMPLATE")"
 step_var_names="$(plugin_read_list "STEP_VAR_NAMES")"
 auto_selections="$(plugin_read_list "AUTO_SELECTIONS")"
+require_up_to_date_enabled="$(plugin_read_config "REQUIRE_UP_TO_DATE_ENABLED" "false")"
+require_up_to_date_branch="$(plugin_read_config "REQUIRE_UP_TO_DATE_BRANCH" "main")"
+require_up_to_date_must_be_branch_head="$(plugin_read_config "REQUIRE_UP_TO_DATE_MUST_BE_BRANCH_HEAD" "false")"
 
 if [[ -z "${step_template}" ]] ; then
   1>&2 echo "+++ ❌ Step templates plugin error"
@@ -35,6 +38,15 @@ if [[ ! -f "${step_template}" ]]; then
   1>&2 echo "+++ ❌ Step templates plugin error"
   1>&2 echo "Specified step template does not exist: '${step_template}'"
   exit 1
+fi
+
+# validate branch is up-to-date if required
+if [[ "${require_up_to_date_enabled}" == "true" ]]; then
+  if ! validate_branch_up_to_date "${require_up_to_date_branch}" "${require_up_to_date_must_be_branch_head}"; then
+    1>&2 echo "+++ ❌ Step templates plugin error"
+    1>&2 echo "Branch validation failed: branch requirements not met"
+    exit 1
+  fi
 fi
 
 
