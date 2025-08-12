@@ -220,12 +220,12 @@ teardown() {
   unstub git
 }
 
-@test "require-up-to-date with soft fail-mode succeeds with warning when validation fails" {
+@test "require-up-to-date with soft-fail succeeds with warning when validation fails" {
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
-  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_FAIL_MODE="soft"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_SOFT_FAIL="true"
 
   stub git \
     "fetch origin main : exit 0" \
@@ -240,12 +240,12 @@ teardown() {
   unstub git
 }
 
-@test "require-up-to-date with hard fail-mode fails when validation fails" {
+@test "require-up-to-date with hard fail (explicit) fails when validation fails" {
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_BRANCH="main"
-  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_FAIL_MODE="hard"
+  export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_SOFT_FAIL="false"
 
   stub git \
     "fetch origin main : exit 0" \
@@ -260,7 +260,7 @@ teardown() {
   unstub git
 }
 
-@test "require-up-to-date uses hard fail-mode by default" {
+@test "require-up-to-date uses hard fail by default" {
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_STEP_TEMPLATE="/tmp/step-template.yaml"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_AUTO_SELECTIONS_0="auto-one"
   export BUILDKITE_PLUGIN_STEP_TEMPLATES_REQUIRE_UP_TO_DATE_ENABLED="true"

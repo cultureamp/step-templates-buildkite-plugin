@@ -281,9 +281,7 @@ Without validation, deployments might run from commits that are missing critical
 - `enabled` (boolean, default: `false`) - Whether to enable commit validation
 - `branch` (string, default: `"main"`) - The upstream branch to validate against (ensures current commit includes all changes from `origin/<branch>`)
 - `must-be-branch-head` (boolean, default: `false`) - Require that you're at the head of your current branch (not behind any commits). Note: this check is automatically skipped if you're already on the upstream branch, since that would be redundant.
-- `fail-mode` (string, default: `"hard"`) - How to handle validation failures:
-  - `"hard"`: Exit with error code 1 (fails the build)
-  - `"soft"`: Exit with code 0 but skip uploading pipeline steps
+- `soft-fail` (boolean, default: `false`) - Allow validation failures without failing the build. When `true`, validation failures will skip uploading steps but won't fail the build.
 
 **Basic Example:**
 
@@ -297,7 +295,7 @@ steps:
             branch: "main"  # or "master", "develop", etc.
 ```
 
-**Advanced Example (with must-be-branch-head check):**
+**Advanced Example (with must-be-branch-head check & soft failures):**
 
 ```yaml
 steps:
@@ -308,7 +306,7 @@ steps:
             enabled: true
             branch: "main"
             must-be-branch-head: true
-            fail-mode: "soft"
+            soft-fail: true  # Won't fail build, just skips steps
 ```
 
 When enabled, the plugin will:
