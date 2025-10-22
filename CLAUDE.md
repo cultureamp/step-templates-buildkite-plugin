@@ -39,7 +39,7 @@ docker-compose run --rm lint
 1. **Configuration Reading**: Plugin reads configuration from environment variables prefixed with `BUILDKITE_PLUGIN_STEP_TEMPLATES_`
 2. **Template Validation**: Ensures step-template exists and either selector-template or auto-selections are provided
 3. **Key Extraction**: Extracts metadata key from selector template using regex pattern matching
-4. **Environment Processing**: 
+4. **Environment Processing**:
    - Reads selected environments from Buildkite metadata
    - Processes auto-selections if provided
    - Sets up environment variables (STEP_ENVIRONMENT, STEP_SELECTOR_ID, named variables)
@@ -64,8 +64,12 @@ docker-compose run --rm lint
 
 Uses BATS (Bash Automated Testing System) with comprehensive test coverage:
 - `command.bats`: Tests main plugin execution flow
-- `shared.bats`: Tests utility functions  
+- `shared.bats`: Tests utility functions
 - `steps_util.bats`: Tests step processing utilities
 - `steps_write.bats`: Tests step template rendering
 
 Test fixtures are organized in `tests/fixtures/` with sample configurations and mock binaries.
+
+## MCP Rules
+
+- When using Context7 maintain a file named library.md to store a Library IDs that you search for and before searching make sure that you check the file and use the library ID already available. Otherwise search for it.
