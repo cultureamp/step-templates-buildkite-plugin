@@ -262,6 +262,61 @@ A template containing the available environment specified as a Buildkite pipelin
 `block` step that supplies a set of `fields` for selection. The selection may be
 optional.
 
+### `require-up-to-date` (Optional, object)
+
+Validates that the current commit meets _freshness_ requirements before proceeding with step generation. This prevents deployments from stale or outdated commits.
+
+**Why is this useful?**
+
+Without validation, deployments might run from commits that are missing critical changes from the main branch. This is particularly dangerous for IAC like Terraform where missing resource definitions or configuration changes could lead to accidental deletion of infrastructure.
+
+**Common scenarios this prevents:**
+
+1. You're on a feature branch that was created days ago but hasn't been updated with recent main branch changes
+2. You've checked out an old commit locally and forgotten to pull the latest changes
+3. You're deploying from a commit that predates critical infrastructure or security updates
+
+**Properties:**
+
+- `enabled` (boolean, default: `false`) - Whether to enable commit validation
+- `branch` (string, default: `"main"`) - The upstream branch to validate against (ensures current commit includes all changes from `origin/<branch>`)
+- `must-be-branch-head` (boolean, default: `false`) - Require that you're at the head of your current branch (not behind any commits). Note: this check is automatically skipped if you're already on the upstream branch, since that would be redundant.
+- `soft-fail` (boolean, default: `false`) - Allow validation failures without failing the build. When `true`, validation failures will skip uploading steps but won't fail the build.
+
+**Basic Example:**
+
+```yaml
+steps:
+  - plugins:
+      - cultureamp/step-templates#v1.3.0:
+          step-template: deploy-steps.yml
+          require-up-to-date:
+            enabled: true
+            branch: "main"  # or "master", "develop", etc.
+```
+
+**Advanced Example (with must-be-branch-head check & soft failures):**
+
+```yaml
+steps:
+  - plugins:
+      - cultureamp/step-templates#v1.3.0:
+          step-template: terraform-deploy-steps.yml
+          require-up-to-date:
+            enabled: true
+            branch: "main"
+            must-be-branch-head: true
+            soft-fail: true  # Won't fail build, just skips steps
+```
+
+When enabled, the plugin will:
+
+1. Fetch the latest changes from the specified upstream branch
+2. Check if the current commit includes all changes from `origin/<branch>` (using `git merge-base --is-ancestor`)
+3. If `must-be-branch-head: true`, also verify the current commit is the latest commit on the current branch
+4. Fail with a clear error message if any validation fails
+5. Proceed normally if all validations pass
+
 #### The `block` `key` value
 
 > [!WARNING]

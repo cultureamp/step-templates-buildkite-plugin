@@ -55,3 +55,142 @@ function create_template_file() {
 
   assert_equal "${key}" "first-key"
 }
+
+@test "validate_branch_up_to_date succeeds when branch is up-to-date" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0"
+
+  run validate_branch_up_to_date "main"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  unstub git
+}
+
+@test "validate_branch_up_to_date fails when branch is behind" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 1"
+
+  run validate_branch_up_to_date "main"
+
+  assert_failure
+  assert_output --partial "❌ Current commit is missing changes from origin/main"
+  assert_output --partial "Run 'git pull origin main' to update your branch"
+  unstub git
+}
+
+@test "validate_branch_up_to_date fails when fetch fails" {
+  stub git \
+    "fetch origin main : exit 1"
+
+  run validate_branch_up_to_date "main"
+
+  assert_failure
+  assert_output --partial "❌ Failed to fetch from origin/main"
+  assert_output --partial "Make sure the branch 'main' exists on origin"
+  unstub git
+}
+
+@test "validate_branch_up_to_date uses default branch when none specified" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0"
+
+  run validate_branch_up_to_date
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  unstub git
+}
+
+@test "validate_branch_up_to_date works with custom branch" {
+  stub git \
+    "fetch origin develop : exit 0" \
+    "merge-base --is-ancestor HEAD origin/develop : exit 0"
+
+  run validate_branch_up_to_date "develop"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/develop"
+  unstub git
+}
+
+@test "validate_branch_up_to_date with must-be-branch-head succeeds when both checks pass" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo feature-branch" \
+    "fetch origin feature-branch : exit 0" \
+    "diff --quiet HEAD origin/feature-branch : exit 0"
+
+  run validate_branch_up_to_date "main" "true"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "✅ Current commit is the latest on origin/feature-branch"
+  unstub git
+}
+
+@test "validate_branch_up_to_date with must-be-branch-head fails when current branch is behind" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo feature-branch" \
+    "fetch origin feature-branch : exit 0" \
+    "diff --quiet HEAD origin/feature-branch : exit 1"
+
+  run validate_branch_up_to_date "main" "true"
+
+  assert_failure
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "❌ Current commit is not the latest on origin/feature-branch"
+  assert_output --partial "Run 'git pull origin feature-branch' to get the latest commits"
+  unstub git
+}
+
+@test "validate_branch_up_to_date with must-be-branch-head handles detached HEAD" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo"
+
+  run validate_branch_up_to_date "main" "true"
+
+  assert_failure
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "❌ Unable to determine current branch (detached HEAD?)"
+  assert_output --partial "Make sure you're on a named branch, not a detached HEAD"
+  unstub git
+}
+
+@test "validate_branch_up_to_date with must-be-branch-head handles missing remote branch" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo feature-branch" \
+    "fetch origin feature-branch : exit 1"
+
+  run validate_branch_up_to_date "main" "true"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "⚠️ Unable to fetch origin/feature-branch (branch may not exist on remote)"
+  assert_output --partial "Skipping current branch head check"
+  unstub git
+}
+
+@test "validate_branch_up_to_date with must-be-branch-head skips check when on upstream branch" {
+  stub git \
+    "fetch origin main : exit 0" \
+    "merge-base --is-ancestor HEAD origin/main : exit 0" \
+    "branch --show-current : echo main"
+
+  run validate_branch_up_to_date "main" "true"
+
+  assert_success
+  assert_output --partial "✅ Current commit includes all changes from origin/main"
+  assert_output --partial "--- Skipping branch head check (already validated main is up-to-date)"
+  unstub git
+}
