@@ -7,8 +7,8 @@ metadata:
   tags:
     - buildkite-plugin
     - camp-sre
-    - data-internal-use-only
-    - users-internal
+    - data-classification-internal-use-only
+    - asset-criticality-high
   annotations:
     github.com/project-slug: cultureamp/step-templates-buildkite-plugin
     github.com/team-slug: cultureamp/sre-enablement
